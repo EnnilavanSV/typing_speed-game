@@ -1,0 +1,36 @@
+generator clinet{
+    provider = "prisma-client-js"
+}
+
+datasource db{
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+}
+
+model User {
+    id String @id @default(uuid())
+    email String @unique
+    passwordHash String
+    bestTimeMs Int?
+    createdAt DateTime @default(now())
+    results GameResult[]
+}
+
+model GameResult{
+    id String @id @default(uuid())
+    userId  String
+  // This line does NOT create a column either. It tells Prisma HOW userId
+  // connects back to the User table, so we can write code like
+  // result.user.email. "fields: [userId]" = the column on THIS table doing
+  // the linking; "references: [id]" = the column on User it points to.
+  user User @relation(fields: [userId] , references: [id])
+
+  timeMs Int
+  errorCount Int @default(0)
+  createdAt DateTime @default(now())
+
+    // This creates a database INDEX on the timeMs column — like a book's
+  // index page, it lets the database find and sort rows by timeMs much
+  // faster. Matters here because the leaderboard sorts by timeMs constantly.
+  @@index([timeMs])
+}
