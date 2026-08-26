@@ -25,3 +25,21 @@ export const loginInputSchema = z.object({
   email: z.string().email({ message: "Enter a valid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
+
+export const submitGameResultInputSchema = z.object({
+  // "positive()" rejects zero and negative numbers — a completed game
+  // always takes SOME real time, so 0 or less is impossible and almost
+  // certainly a bug (or someone poking the API directly) rather than a
+  // real result.
+  timeMs: z
+    .number()
+    .int()
+    .positive({ message: "timeMs must be a positive number" }),
+
+  // "min(0)" allows zero mistakes (a perfect run) but rejects negative
+  // counts, which make no sense.
+  errorCount: z
+    .number()
+    .int()
+    .min(0, { message: "errorCount cannot be negative" }),
+});
