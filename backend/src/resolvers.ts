@@ -1,10 +1,12 @@
 // GraphQLError lets us throw errors that include a machine-readable "code",
 // not just a plain error message — so the frontend can react differently
 // to "EMAIL_TAKEN" vs "UNAUTHENTICATED" instead of guessing from text.
-import { GraphQLError } from "graphql";
+import { GraphQLError, Token } from "graphql";
 
 import type { GraphQLContext } from "./context";
 
+import { registerInputSchema } from "./validation";
+import { hashPassword, signToken } from "./auth";
 
 // A small reusable helper. "feature: string" is the input; ": never" means
 // this function never actually returns a value — it always throws instead.
@@ -71,7 +73,48 @@ export const resolvers = {
     // crashing — real logic gets written in the Auth sprint (register,
     // login) and the leaderboard sprint (submitGameResult).
 
-    register: () => notImplemented("register"),
+    register: async (
+      _parent: unknown,
+      args: { email: string; password: string },
+      context: GraphQLContext,
+    ) => {
+      // Check the input actually matches our rules (valid email, 8+ char
+      // password) BEFORE touching the database at all. "safeParse" checks
+      // without throwing — it hands back an object telling us whether it
+      // passed, instead of crashing the request on bad input.
+      const parsed = registerInputSchema.safeParse(args);
+      if (!parsed.success) {
+        // parsed.error.issues is a list of every validation problem found;
+        // we surface just the first one's message to keep the error simple
+        // for the client to display.
+        throw new GraphQLError(parsed.error.issues[0].message, {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
+      const { email, password } = parsed.data;
+
+      const existing = await context.prisma.user.findUnique({
+        where: { email },
+      });
+      if (existing) {
+        throw new GraphQLError(
+          "An account with this email is already existed",
+          {
+            extensions: { code: "EMAIL_TAKEN" },
+          },
+        );
+      }
+
+      const passwordHash = await hashPassword(password);
+
+      const user = await context.prisma.user.create({
+        data: { email, passwordHash },
+      });
+
+      return { token: signToken(user.id), user };
+    },
+
     login: () => notImplemented("login"),
     submitGameResult: () => notImplemented("submitGameResult"),
   },
