@@ -5,8 +5,9 @@ import { GraphQLError, Token } from "graphql";
 
 import type { GraphQLContext } from "./context";
 
-import { registerInputSchema } from "./validation";
-import { hashPassword, signToken } from "./auth";
+import { registerInputSchema, loginInputSchema } from "./validation";
+import { hashPassword, verifyPassword, signToken } from "./auth";
+import { parse } from "path";
 
 // A small reusable helper. "feature: string" is the input; ": never" means
 // this function never actually returns a value — it always throws instead.
@@ -115,7 +116,54 @@ export const resolvers = {
       return { token: signToken(user.id), user };
     },
 
-    login: () => notImplemented("login"),
+    login: async (
+      _parent: unknown,
+      args: { email: string; password: string },
+      context: GraphQLContext,
+    ) => {
+      // Same validation pattern as register — check shape/rules before
+      // touching the database.
+      const parsed = loginInputSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new GraphQLError(parsed.error.issues[0].message, {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
+      const { email, password } = parsed.data;
+
+      // Look up the user by email. This might come back null if no account
+      // exists with that email at all.
+      const user = await context.prisma.user.findUnique({ where: { email } });
+
+      // A small helper so both failure paths below throw the exact same
+      // error. This is deliberate, not laziness: whether the real problem is
+      // "no account with this email" or "right email, wrong password," we
+      // give the client the SAME generic message either way. If we told the
+      // client specifically "no account with that email," an attacker could
+      // use that difference to check which emails are registered on this app
+      // at all — a real, commonly-exploited weakness called user enumeration.
+      const invalidCredentials = () =>
+        new GraphQLError("Invalid email or password", {
+          extensions: { code: "INVALID_CREDENTIALS" },
+        });
+
+      if (!user) {
+        throw invalidCredentials();
+      }
+
+      // Compare the typed password against the stored hash. This is the
+      // verifyPassword helper from auth.ts — it hashes the attempt the same
+      // way and checks if the results match, never "unscrambling" anything.
+      const passwordMatches = await verifyPassword(password, user.passwordHash);
+      if (!passwordMatches) {
+        throw invalidCredentials();
+      }
+
+      // Success — hand back a fresh signed token and the user's public info.
+      return { token: signToken(user.id), user };
+    },
+
     submitGameResult: () => notImplemented("submitGameResult"),
   },
 };
