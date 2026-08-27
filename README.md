@@ -100,6 +100,7 @@ docs/
   PRD.md                  Product requirements
   TECHNICAL_DESIGN.md      Architecture, schema, API contract, and the
                            reasoning behind every major decision
+  WALKTHROUGH.md            Written walkthrough of the implementation
 
 docker-compose.yml     PostgreSQL + backend API
 ```
@@ -121,6 +122,10 @@ The live demo above runs on three separate free-tier services, each independent 
 - **Frontend (Vercel):** a static build of `frontend/`, produced by `vite build`. `frontend/src/graphql.ts` reads the backend URL from `VITE_GRAPHQL_ENDPOINT`, an environment variable set in Vercel and baked into the build at compile time — locally, with that variable unset, it falls back to `http://localhost:4000/graphql` automatically, so no code changes are needed between environments.
 - **Backend (Render):** built and run from the same `backend/Dockerfile` used locally, as a long-running web service (not serverless) with `DATABASE_URL` and `JWT_SECRET` set as environment variables in Render's dashboard rather than a committed file.
 - **Database (Neon):** a managed, serverless Postgres instance, replacing the local Docker `db` container for production. It's a separate database with separate data from local development — the same Prisma migrations were applied to both, but they don't share data. Its connection string requires `sslmode=require` (encrypted, since traffic now crosses the public internet rather than staying on `localhost`).
+
+## Walkthrough
+
+A written walkthrough of the implementation and the reasoning behind the key technical decisions is in [`docs/WALKTHROUGH.md`](./docs/WALKTHROUGH.md).
 
 ## Known Limitations
 
