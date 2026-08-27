@@ -22,6 +22,7 @@ The backend runs on Render's free tier, which spins down after 15 minutes of ina
 - Typing game: 20 random letters, one at a time, 0.5s penalty per incorrect keypress, live timer, keyboard focus maintained throughout
 - Best time persisted locally (survives a refresh, independent of the network) and separately tracked per account on the backend
 - Leaderboard of top times across all players
+- Per-user game history, shown on the home screen (backend-authenticated: `gameHistory` is scoped to the caller's JWT, no user can query another user's results)
 - Input validation and specific, machine-readable GraphQL error codes (not generic 500s)
 - Integration tests running against a real PostgreSQL database
 
@@ -92,6 +93,7 @@ frontend/
     AuthForm.tsx        Login/register UI
     Game.tsx             Core game: sequence, timer, penalty logic
     Leaderboard.tsx       Leaderboard view
+    GameHistory.tsx        Recent games, shown on the home screen
     ThemeContext.tsx       Dark/light mode state + persistence
     ThemeToggle.tsx         Theme toggle button
     graphql.ts               GraphQL fetch helper
