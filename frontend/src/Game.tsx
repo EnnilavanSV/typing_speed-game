@@ -40,7 +40,10 @@ const SUBMIT_RESULT_MUTATION = `
 `;
 
 export function Game() {
-  const { user } = useAuth();
+  // "logout" comes from the same AuthContext as "user" — pulling it out
+  // here means the finished-game screen can offer a logout button without
+  // needing App.tsx to pass anything down.
+  const { user, logout } = useAuth();
 
   const [status, setStatus] = useState<GameStatus>("idle");
   const [sequence, setSequence] = useState<string[]>([]);
@@ -172,8 +175,22 @@ export function Game() {
     }
   }
 
+  // Shared by both the "Home" button below and the Leaderboard's own
+  // "Home" button (passed down as onGoHome) — resets the game back to
+  // its very first screen (status "idle"), regardless of which screen
+  // (finished, or leaderboard-over-finished) the player is coming from.
+  function goHome() {
+    setShowLeaderboard(false);
+    setStatus("idle");
+  }
+
   if (showLeaderboard) {
-    return <Leaderboard onClose={() => setShowLeaderboard(false)} />;
+    return (
+      <Leaderboard
+        onClose={() => setShowLeaderboard(false)}
+        onGoHome={goHome}
+      />
+    );
   }
 
   // Shared "card" styling for all three game screens, so idle/finished/
@@ -242,7 +259,19 @@ export function Game() {
           >
             View Leaderboard
           </button>
+          <button onClick={goHome} className={secondaryButtonClasses}>
+            Home
+          </button>
         </div>
+        {/* A plain underlined link instead of a bordered button — logout
+            is a valid but infrequent action here, so it shouldn't compete
+            visually with Play Again / Leaderboard / Home above it. */}
+        <button
+          onClick={logout}
+          className="w-full text-center text-sm text-neutral-500 hover:underline dark:text-neutral-400"
+        >
+          Log out
+        </button>
       </div>
     );
   }
