@@ -49,14 +49,15 @@ export const typeDefs = /* GraphQL */ `
     # is never null, and none of the entries inside it are null either.
     leaderboard(limit: Int = 10): [LeaderboardEntry!]!
 
-    # Every game the CURRENTLY LOGGED-IN user has ever completed, newest
-    # first. Deliberately takes no "userId" argument at all — who this
-    # returns results for comes only from the caller's own auth token
+    # Every game the CURRENTLY LOGGED-IN user has completed, newest first.
+    # "limit" works exactly like leaderboard's — optional, defaults to 10.
+    # Deliberately takes no "userId" argument at all — who this returns
+    # results for comes only from the caller's own auth token
     # (context.userId), never from something a client could pass in. That's
     # what makes it impossible for one user to ever read another user's
     # history, by construction rather than by a permission check we could
     # forget to add.
-    gameHistory: [GameResult!]!
+    gameHistory(limit: Int = 10): [GameResult!]!
   }
 
   # "Mutation" lists every action a client can PERFORM (things that change data).

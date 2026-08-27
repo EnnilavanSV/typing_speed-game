@@ -74,7 +74,7 @@ export const resolvers = {
 
     gameHistory: async (
       _parent: unknown,
-      _args: unknown,
+      args: { limit?: number },
       context: GraphQLContext,
     ) => {
       // Same guard as submitGameResult — no logged-in user, no history to
@@ -87,6 +87,8 @@ export const resolvers = {
         );
       }
 
+      const limit = args.limit ?? 10;
+
       // "where: { userId: context.userId }" is the entire security
       // boundary here — it comes from the verified JWT, not from anything
       // the client sent, so there's no argument a caller could tamper with
@@ -94,6 +96,7 @@ export const resolvers = {
       return context.prisma.gameResult.findMany({
         where: { userId: context.userId },
         orderBy: { createdAt: "desc" },
+        take: limit,
       });
     },
   },

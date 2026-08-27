@@ -8,6 +8,7 @@ import {
 import { useAuth } from "./AuthContext";
 import { graphqlRequest } from "./graphql";
 import { Leaderboard } from "./Leaderboard";
+import { GameHistory } from "./GameHistory";
 
 const SEQUENCE_LENGTH = 20;
 const PENALTY_MS = 500;
@@ -222,6 +223,10 @@ export function Game() {
         >
           View Leaderboard
         </button>
+        {/* Only rendered on the home screen — a fresh fetch every time you
+            land back here, so a game you just finished shows up immediately
+            without needing a manual refresh. */}
+        <GameHistory />
       </div>
     );
   }
