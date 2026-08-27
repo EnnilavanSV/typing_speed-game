@@ -45,37 +45,70 @@ export function AuthForm() {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <h2>{mode === "login" ? "Log in" : "Create an account"}</h2>
+  // A shared set of classes for both text inputs, so the focus ring and
+  // border colors only need to be written once instead of duplicated.
+  const inputClasses =
+    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-neutral-900 focus:border-ruby-500 focus:outline-none focus:ring-2 focus:ring-ruby-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:ring-ruby-900";
 
-      <div>
-        <label htmlFor="email">Email</label>
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-sm rounded-2xl border border-ruby-100 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+    >
+      <h2 className="mb-6 text-center text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+        {mode === "login" ? "Log in" : "Create an account"}
+      </h2>
+
+      <div className="mb-4">
+        <label
+          htmlFor="email"
+          className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+        >
+          Email
+        </label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className={inputClasses}
         />
       </div>
 
-      <div>
-        <label htmlFor="password">Password</label>
+      <div className="mb-4">
+        <label
+          htmlFor="password"
+          className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+        >
+          Password
+        </label>
         <input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className={inputClasses}
         />
       </div>
 
       {/* "error && <p>...</p>" only renders the paragraph at all if error
           is truthy — a common React shorthand for conditional rendering. */}
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p
+          role="alert"
+          className="mb-4 text-sm text-ruby-600 dark:text-ruby-400"
+        >
+          {error}
+        </p>
+      )}
 
-      <button type="submit" disabled={submitting}>
+      <button
+        type="submit"
+        disabled={submitting}
+        className="mb-3 w-full rounded-lg bg-ruby-600 px-4 py-2 font-medium text-white transition-colors hover:bg-ruby-700 disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {submitting
           ? "Please wait..."
           : mode === "login"
@@ -86,6 +119,7 @@ export function AuthForm() {
       <button
         type="button"
         onClick={() => setMode(mode === "login" ? "register" : "login")}
+        className="w-full text-center text-sm text-ruby-600 hover:underline dark:text-ruby-400"
       >
         {mode === "login"
           ? "Need an account? Register"
