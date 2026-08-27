@@ -16,5 +16,25 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://typing_game:typing_game@db:5432/typing_speed_game
+      JWT_SECRET: dev-secret-change-me
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    # Overrides the Dockerfile's default CMD: run migrations against
+    # whatever database is out there FIRST (non-interactively — "deploy"
+    # never prompts, unlike "migrate dev"), then start the server. This
+    # means a reviewer running `docker compose up` for the very first
+    # time, against a brand-new empty database, gets working tables
+    # automatically — they don't need a separate manual migration step.
+    command: sh -c "bunx prisma migrate deploy && bun run start"
+
 volumes:
   db_data:
