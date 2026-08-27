@@ -12,6 +12,8 @@ import {
 } from "./validation";
 import { hashPassword, verifyPassword, signToken } from "./auth";
 
+import { recordGameResult } from "./gameResultService";
+
 // A small reusable helper. "feature: string" is the input; ": never" means
 // this function never actually returns a value — it always throws instead.
 function notImplemented(feature: string): never {
@@ -190,41 +192,12 @@ export const resolvers = {
       }
       const { timeMs, errorCount } = parsed.data;
 
-      // Run both writes as ONE database transaction — an array passed to
-      // $transaction means "run all of these together; if anything fails,
-      // undo all of them." This is the design decision from our technical
-      // design doc: a crash between two separate writes would otherwise leave
-      // GameResult history and User.bestTimeMs out of sync with each other.
-      const [gameResult] = await context.prisma.$transaction([
-        // 1. Always record this attempt, win or not — GameResult is our
-        // permanent history of every game ever played.
-        context.prisma.gameResult.create({
-          data: { userId: context.userId, timeMs, errorCount },
-        }),
-
-        // 2. Only OVERWRITE bestTimeMs if this run is actually better.
-        // Notice the comparison — "bestTimeMs is null, OR this new time beats
-        // it" — happens INSIDE the database's WHERE clause, not in our own
-        // JavaScript beforehand. That distinction matters: if we'd read the
-        // old bestTimeMs into a variable, compared it in JS, then written a
-        // new value, two requests arriving close together could both read the
-        // same stale value and race each other — a "lost update" bug. Putting
-        // the comparison in the WHERE clause makes the entire
-        // check-and-update a single atomic database operation instead, so
-        // that race becomes impossible no matter how requests overlap.
-        context.prisma.user.updateMany({
-          where: {
-            id: context.userId,
-            OR: [{ bestTimeMs: null }, { bestTimeMs: { gt: timeMs } }],
-          },
-          data: { bestTimeMs: timeMs },
-        }),
-      ]);
-
-      // $transaction returns an array matching the order of operations above
-      // — the first entry is whatever gameResult.create() returned, which is
-      // exactly the GameResult our schema promises back to the client.
-      return gameResult;
+      return recordGameResult(
+        context.prisma,
+        context.userId,
+        timeMs,
+        errorCount,
+      );
     },
   },
 };
