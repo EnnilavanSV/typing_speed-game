@@ -1,4 +1,10 @@
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+// Vite exposes any env var prefixed VITE_ on import.meta.env, replacing it
+// with a literal string at build time — so this is baked into the build,
+// not read at runtime. Locally, no .env file means it's undefined and we
+// fall back to the local backend; in production (Vercel), VITE_GRAPHQL_ENDPOINT
+// is set to the deployed Render backend's URL instead.
+const GRAPHQL_ENDPOINT =
+  import.meta.env.VITE_GRAPHQL_ENDPOINT ?? "http://localhost:4000/graphql";
 
 // A generic helper: T is a placeholder for "whatever shape of data this
 // particular call expects back" — TypeScript fills that in differently
