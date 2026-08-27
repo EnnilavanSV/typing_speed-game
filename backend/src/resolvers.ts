@@ -71,6 +71,31 @@ export const resolvers = {
         bestTimeMs: user.bestTimeMs as number,
       }));
     },
+
+    gameHistory: async (
+      _parent: unknown,
+      _args: unknown,
+      context: GraphQLContext,
+    ) => {
+      // Same guard as submitGameResult — no logged-in user, no history to
+      // return. Throwing here (rather than quietly returning []) matches
+      // how "me" and submitGameResult already treat an anonymous caller.
+      if (!context.userId) {
+        throw new GraphQLError(
+          "You must be logged in to view your game history",
+          { extensions: { code: "UNAUTHENTICATED" } },
+        );
+      }
+
+      // "where: { userId: context.userId }" is the entire security
+      // boundary here — it comes from the verified JWT, not from anything
+      // the client sent, so there's no argument a caller could tamper with
+      // to read someone else's rows.
+      return context.prisma.gameResult.findMany({
+        where: { userId: context.userId },
+        orderBy: { createdAt: "desc" },
+      });
+    },
   },
 
   Mutation: {
