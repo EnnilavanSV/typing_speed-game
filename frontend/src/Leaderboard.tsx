@@ -40,26 +40,54 @@ export function Leaderboard({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div>
-      <h2>Leaderboard</h2>
-      <button onClick={onClose}>Back</button>
+    <div className="w-full max-w-sm rounded-2xl border border-ruby-100 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <h2 className="mb-4 text-center text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+        Leaderboard
+      </h2>
+      <button
+        onClick={onClose}
+        className="mb-6 w-full rounded-lg border border-ruby-200 px-4 py-2 font-medium text-ruby-600 transition-colors hover:bg-ruby-50 dark:border-neutral-700 dark:text-ruby-400 dark:hover:bg-neutral-800"
+      >
+        Back
+      </button>
 
-      {loading && <p>Loading...</p>}
-      {error && <p role="alert">{error}</p>}
+      {loading && (
+        <p className="text-center text-neutral-500 dark:text-neutral-400">
+          Loading...
+        </p>
+      )}
+      {error && (
+        <p
+          role="alert"
+          className="text-center text-sm text-ruby-600 dark:text-ruby-400"
+        >
+          {error}
+        </p>
+      )}
 
       {!loading &&
         !error &&
         (entries.length === 0 ? (
-          <p>No scores yet — be the first!</p>
+          <p className="text-center text-neutral-500 dark:text-neutral-400">
+            No scores yet — be the first!
+          </p>
         ) : (
-          <ol>
+          <ol className="flex flex-col gap-2">
             {entries.map((entry) => (
               // React needs a stable, unique "key" per list item to
               // correctly track which row is which across re-renders.
               // "rank" works perfectly here since it's always 1, 2, 3...
               // with no duplicates.
-              <li key={entry.rank}>
-                {entry.email} — {(entry.bestTimeMs / 1000).toFixed(2)}s
+              <li
+                key={entry.rank}
+                className="flex items-center justify-between rounded-lg bg-ruby-50 px-4 py-2 dark:bg-neutral-800"
+              >
+                <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                  #{entry.rank} {entry.email}
+                </span>
+                <span className="font-mono text-ruby-600 dark:text-ruby-400">
+                  {(entry.bestTimeMs / 1000).toFixed(2)}s
+                </span>
               </li>
             ))}
           </ol>
