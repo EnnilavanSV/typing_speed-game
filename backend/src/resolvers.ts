@@ -64,7 +64,7 @@ export const resolvers = {
       // position in the sorted list (0, 1, 2, ...), so "index + 1" turns
       // that into a human-friendly rank starting at 1.
       return users.map((user, index) => ({
-        reank: index + 1,
+        rank: index + 1,
         email: user.email,
         bestTimeMs: user.bestTimeMs as number,
       }));

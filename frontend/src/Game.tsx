@@ -7,6 +7,7 @@ import {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { graphqlRequest } from "./graphql";
+import { Leaderboard } from "./Leaderboard";
 
 const SEQUENCE_LENGTH = 20;
 const PENALTY_MS = 500;
@@ -44,6 +45,7 @@ export function Game() {
   const [status, setStatus] = useState<GameStatus>("idle");
   const [sequence, setSequence] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
 
   // "ref" values persist between renders WITHOUT causing a re-render when
@@ -170,11 +172,18 @@ export function Game() {
     }
   }
 
+  if (showLeaderboard) {
+    return <Leaderboard onClose={() => setShowLeaderboard(false)} />;
+  }
+
   if (status === "idle") {
     return (
       <div>
         <p>Welcome, {user?.email}</p>
         <button onClick={startGame}>Start Game</button>
+        <button onClick={() => setShowLeaderboard(true)}>
+          View Leaderboard
+        </button>
       </div>
     );
   }
@@ -188,6 +197,9 @@ export function Game() {
         {submitError && (
           <p role="alert">Couldn't save to leaderboard: {submitError}</p>
         )}
+        <button onClick={() => setShowLeaderboard(true)}>
+          View Leaderboard
+        </button>
         <button onClick={startGame}>Play Again</button>
       </div>
     );
