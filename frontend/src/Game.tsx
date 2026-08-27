@@ -176,12 +176,33 @@ export function Game() {
     return <Leaderboard onClose={() => setShowLeaderboard(false)} />;
   }
 
+  // Shared "card" styling for all three game screens, so idle/finished/
+  // playing all sit inside the same visual container.
+  const cardClasses =
+    "flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-ruby-100 bg-white p-8 text-center shadow-sm dark:border-neutral-800 dark:bg-neutral-900";
+
+  const secondaryButtonClasses =
+    "w-full rounded-lg border border-ruby-200 px-4 py-2 font-medium text-ruby-600 transition-colors hover:bg-ruby-50 dark:border-neutral-700 dark:text-ruby-400 dark:hover:bg-neutral-800";
+
+  const primaryButtonClasses =
+    "w-full rounded-lg bg-ruby-600 px-4 py-2 font-medium text-white transition-colors hover:bg-ruby-700";
+
   if (status === "idle") {
     return (
-      <div>
-        <p>Welcome, {user?.email}</p>
-        <button onClick={startGame}>Start Game</button>
-        <button onClick={() => setShowLeaderboard(true)}>
+      <div className={cardClasses}>
+        <p className="text-neutral-600 dark:text-neutral-300">
+          Welcome,{" "}
+          <span className="font-medium text-ruby-600 dark:text-ruby-400">
+            {user?.email}
+          </span>
+        </p>
+        <button onClick={startGame} className={primaryButtonClasses}>
+          Start Game
+        </button>
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          className={secondaryButtonClasses}
+        >
           View Leaderboard
         </button>
       </div>
@@ -190,29 +211,56 @@ export function Game() {
 
   if (status === "finished") {
     return (
-      <div>
-        <h2>{wasNewBest ? "Success!" : "Failure — Try Again"}</h2>
-        <p>Your time: {(finalTimeMs! / 1000).toFixed(2)}s</p>
-        <p>Mistakes: {errorCount}</p>
+      <div className={cardClasses}>
+        <h2
+          className={
+            wasNewBest
+              ? "text-2xl font-bold text-ruby-600 dark:text-ruby-400"
+              : "text-2xl font-bold text-neutral-700 dark:text-neutral-300"
+          }
+        >
+          {wasNewBest ? "Success!" : "Failure — Try Again"}
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-300">
+          Your time: {(finalTimeMs! / 1000).toFixed(2)}s
+        </p>
+        <p className="text-neutral-600 dark:text-neutral-300">
+          Mistakes: {errorCount}
+        </p>
         {submitError && (
-          <p role="alert">Couldn't save to leaderboard: {submitError}</p>
+          <p role="alert" className="text-sm text-ruby-600 dark:text-ruby-400">
+            Couldn't save to leaderboard: {submitError}
+          </p>
         )}
-        <button onClick={() => setShowLeaderboard(true)}>
-          View Leaderboard
-        </button>
-        <button onClick={startGame}>Play Again</button>
+        <div className="flex w-full flex-col gap-2">
+          <button onClick={startGame} className={primaryButtonClasses}>
+            Play Again
+          </button>
+          <button
+            onClick={() => setShowLeaderboard(true)}
+            className={secondaryButtonClasses}
+          >
+            View Leaderboard
+          </button>
+        </div>
       </div>
     );
   }
 
   // status === "playing"
   return (
-    <div>
-      <p>
+    <div className={cardClasses}>
+      <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
         Progress: {currentIndex} / {sequence.length}
       </p>
-      <p>Time: {(elapsedMs / 1000).toFixed(2)}s</p>
-      <p style={{ fontSize: "3rem", lineHeight: 1.5, marginBottom: "1rem" }}>
+      <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+        Time: {(elapsedMs / 1000).toFixed(2)}s
+      </p>
+      {/* "leading-none" plus the py-4 padding below are what actually fix
+          the old letter/input overlap bug — the tall 6xl text gets
+          explicit vertical breathing room instead of relying on default
+          line-height. */}
+      <p className="py-4 text-6xl font-bold leading-none text-ruby-600 dark:text-ruby-400">
         {sequence[currentIndex]}
       </p>
       <input
@@ -222,6 +270,7 @@ export function Game() {
         onKeyDown={handleKeyDown}
         onBlur={() => inputRef.current?.focus()}
         autoFocus
+        className="w-24 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-center text-neutral-900 focus:border-ruby-500 focus:outline-none focus:ring-2 focus:ring-ruby-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:ring-ruby-900"
       />
     </div>
   );
