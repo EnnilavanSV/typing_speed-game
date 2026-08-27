@@ -1,5 +1,6 @@
 import { useAuth } from "./AuthContext";
 import { AuthForm } from "./AuthForm";
+import { Game } from "./Game";
 
 function App() {
   const { user, loading, logout } = useAuth();
@@ -18,12 +19,7 @@ function App() {
 
   // Logged in — placeholder for now. The real typing game replaces this
   // in the next step.
-  return (
-    <div>
-      <p>Logged in as {user.email}</p>
-      <button onClick={logout}>Log out</button>
-    </div>
-  );
+  return <Game />;
 }
 
 export default App;
