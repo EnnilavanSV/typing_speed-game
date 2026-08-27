@@ -12,10 +12,21 @@ import { GameHistory } from "./GameHistory";
 
 const SEQUENCE_LENGTH = 20;
 const PENALTY_MS = 500;
-// The key we use to store the local best time in the browser's storage —
-// separate from the backend leaderboard, per the assignment's requirement
-// to "persist the user's best score locally."
-const LOCAL_BEST_KEY = "typingGameLocalBest";
+// The PREFIX for the key we use to store the local best time in the
+// browser's storage — separate from the backend leaderboard, per the
+// assignment's requirement to "persist the user's best score locally."
+// Just a prefix, not the full key: see localBestKeyFor() below.
+const LOCAL_BEST_KEY_PREFIX = "typingGameLocalBest";
+
+// Builds a PER-ACCOUNT storage key, e.g. "typingGameLocalBest_abc123".
+// Without this, every account sharing this browser would read and write
+// the exact same single key — so logging in as a different user would
+// silently compare your time against a stranger's (or your own earlier
+// test account's) best instead of your own, showing Failure even after a
+// genuine new personal best.
+function localBestKeyFor(userId: string): string {
+  return `${LOCAL_BEST_KEY_PREFIX}_${userId}`;
+}
 
 // The three phases this component can be in.
 type GameStatus = "idle" | "playing" | "finished";
@@ -149,15 +160,24 @@ export function Game() {
   );
 
   async function finishGame(timeMs: number, mistakes: number) {
+    // Should never actually be null — finishGame only ever runs after a
+    // completed game, and Game only renders at all once App.tsx has
+    // confirmed a logged-in user — but TypeScript can't prove that from
+    // inside this function, so we guard explicitly rather than risk a
+    // runtime crash reading user.id below.
+    if (!user) return;
+
+    const localBestKey = localBestKeyFor(user.id);
+
     // Compare against whatever was saved locally BEFORE this run, so we
     // know whether to show Success or Failure right away — this doesn't
     // depend on the backend responding at all.
-    const previousBest = localStorage.getItem(LOCAL_BEST_KEY);
+    const previousBest = localStorage.getItem(localBestKey);
     const isNewBest = !previousBest || timeMs < Number(previousBest);
     setWasNewBest(isNewBest);
 
     if (isNewBest) {
-      localStorage.setItem(LOCAL_BEST_KEY, String(timeMs));
+      localStorage.setItem(localBestKey, String(timeMs));
     }
 
     // Separately, submit to the backend so this result counts toward the
