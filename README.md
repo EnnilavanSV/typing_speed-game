@@ -4,6 +4,13 @@ A full-stack typing speed test. Register or log in, type 20 randomly generated l
 
 Built for the Product Engineering Intern — Full Stack take-home assignment (Burdenoff).
 
+## Live Demo
+
+- **App:** [typing-speed-game-beta.vercel.app](https://typing-speed-game-beta.vercel.app/)
+- **API (GraphiQL playground):** [typing-speed-game-vnct.onrender.com/graphql](https://typing-speed-game-vnct.onrender.com/graphql)
+
+The backend runs on Render's free tier, which spins down after 15 minutes of inactivity — the first request after a while can take about a minute to wake it back up.
+
 ## Tech Stack
 
 **Backend:** Bun, TypeScript, GraphQL Yoga, PostgreSQL, Prisma, Docker Compose
@@ -107,11 +114,16 @@ Styling is built with **Tailwind CSS v4**, using a custom color palette (`ruby-5
 
 Both light and dark modes are supported, toggled manually via the button in the header (`ThemeToggle.tsx`) rather than only following the OS preference. `ThemeContext.tsx` tracks the current theme, applies a `.dark` class to `<html>` accordingly, and persists the choice in `localStorage` so it's remembered across visits. On first visit with no saved preference, the app defaults to the browser/OS's own light-or-dark setting. A `@custom-variant dark` rule in `index.css` is what makes Tailwind's `dark:` utility classes key off that `.dark` class instead of only ever following `prefers-color-scheme`.
 
+## Deployment
+
+The live demo above runs on three separate free-tier services, each independent of the local Docker setup used for development:
+
+- **Frontend (Vercel):** a static build of `frontend/`, produced by `vite build`. `frontend/src/graphql.ts` reads the backend URL from `VITE_GRAPHQL_ENDPOINT`, an environment variable set in Vercel and baked into the build at compile time — locally, with that variable unset, it falls back to `http://localhost:4000/graphql` automatically, so no code changes are needed between environments.
+- **Backend (Render):** built and run from the same `backend/Dockerfile` used locally, as a long-running web service (not serverless) with `DATABASE_URL` and `JWT_SECRET` set as environment variables in Render's dashboard rather than a committed file.
+- **Database (Neon):** a managed, serverless Postgres instance, replacing the local Docker `db` container for production. It's a separate database with separate data from local development — the same Prisma migrations were applied to both, but they don't share data. Its connection string requires `sslmode=require` (encrypted, since traffic now crosses the public internet rather than staying on `localhost`).
+
 ## Known Limitations
 
 - Client-reported `timeMs` is trusted at face value beyond basic sanity validation (must be a positive integer) — full server-side timing verification is out of scope for this submission.
 - No password reset flow, social login, or refresh token rotation — a single JWT with a 1-day expiry was chosen deliberately over a refresh-token setup, to keep the auth surface area proportional to a take-home's scope (see `docs/TECHNICAL_DESIGN.md` for the tradeoff).
 
-## Walkthrough
-
-[Video link to be added]
