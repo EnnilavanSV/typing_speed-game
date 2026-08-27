@@ -1,0 +1,5 @@
+# Normalize all text files to LF line endings in the repository,
+# regardless of what line endings your editor/OS uses on checkout.
+# This prevents every file from showing as "modified" just because of
+# CRLF vs LF differences between Windows and other environments.
+* text=auto eol=lf
