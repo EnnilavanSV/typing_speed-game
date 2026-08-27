@@ -7,7 +7,7 @@ Built for the Product Engineering Intern — Full Stack take-home assignment (Bu
 ## Tech Stack
 
 **Backend:** Bun, TypeScript, GraphQL Yoga, PostgreSQL, Prisma, Docker Compose
-**Frontend:** React, Vite, TypeScript
+**Frontend:** React, Vite, TypeScript, Tailwind CSS v4
 
 ## Features
 
@@ -85,7 +85,9 @@ frontend/
     AuthForm.tsx        Login/register UI
     Game.tsx             Core game: sequence, timer, penalty logic
     Leaderboard.tsx       Leaderboard view
-    graphql.ts             GraphQL fetch helper
+    ThemeContext.tsx       Dark/light mode state + persistence
+    ThemeToggle.tsx         Theme toggle button
+    graphql.ts               GraphQL fetch helper
 
 docs/
   PRD.md                  Product requirements
@@ -98,6 +100,12 @@ docker-compose.yml     PostgreSQL + backend API
 ## Design Decisions
 
 The full reasoning behind the schema, the API contract, and decisions like denormalizing the user's best time with an atomic conditional update (instead of a naive read-then-write, which would be vulnerable to race conditions under concurrent submissions), choosing stateless JWT over server-side sessions, and the GraphQL error convention, is documented in [`docs/TECHNICAL_DESIGN.md`](./docs/TECHNICAL_DESIGN.md).
+
+## Design System
+
+Styling is built with **Tailwind CSS v4**, using a custom color palette (`ruby-50` through `ruby-950`) derived from a base color of Ruby (`#E0115F`), paired with white/neutral surfaces. The palette is defined once in `frontend/src/index.css` under an `@theme` block, which makes `ruby-*` usable as ordinary Tailwind utility classes (`bg-ruby-600`, `text-ruby-400`, etc.) everywhere in the app.
+
+Both light and dark modes are supported, toggled manually via the button in the header (`ThemeToggle.tsx`) rather than only following the OS preference. `ThemeContext.tsx` tracks the current theme, applies a `.dark` class to `<html>` accordingly, and persists the choice in `localStorage` so it's remembered across visits. On first visit with no saved preference, the app defaults to the browser/OS's own light-or-dark setting. A `@custom-variant dark` rule in `index.css` is what makes Tailwind's `dark:` utility classes key off that `.dark` class instead of only ever following `prefers-color-scheme`.
 
 ## Known Limitations
 
