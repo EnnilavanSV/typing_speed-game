@@ -228,4 +228,18 @@ export const resolvers = {
       );
     },
   },
+
+  // A per-field resolver, keyed by type name then field name — GraphQL
+  // calls this INSTEAD of just reading ".createdAt" straight off whatever
+  // object a Query/Mutation resolver returned. We need it because Prisma
+  // hands back createdAt as a real JS Date object, but our schema declares
+  // it as "String!". Without this, GraphQL's default String serializer
+  // falls back to Date's own .valueOf() (the raw epoch-milliseconds
+  // number) instead of a readable date — which is exactly why it showed
+  // up as "Invalid Date" once the frontend tried to parse it. This one
+  // resolver fixes createdAt everywhere GameResult is returned (both here
+  // and from submitGameResult), not just in gameHistory.
+  GameResult: {
+    createdAt: (parent: { createdAt: Date }) => parent.createdAt.toISOString(),
+  },
 };
